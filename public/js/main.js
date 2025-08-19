@@ -16,11 +16,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const addActionBtn = document.getElementById('add-action-item');
             const actionList = document.getElementById('action-items-list');
             const generateBtn = document.getElementById('generate-btn');
-            const minutesContainer = document.getElementById('generated-minutes-container');
-            const minutesOutput = document.getElementById('generated-minutes');
-            const copyBtn = document.getElementById('copy-btn');
-            const downloadPdfBtn = document.getElementById('download-pdf-btn');
-            const copySuccessMsg = document.getElementById('copy-success-msg');
 
             // --- Event Listener for Adding Agenda Items ---
             addAgendaBtn.addEventListener('click', () => {
@@ -156,9 +151,107 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 
                 // Discussion
-
-
+                if (discussion.length !== 0){
+                    const discTitle = "Discussion & Decisions";
+                    doc.setFontSize(16); // Set a normal font size
+                    doc.setTextColor(0, 0, 0); // Set color back to black
+                    doc.setFont("helvetica", "bold"); // Set font style to bold
+                    counter = 1;
+                    posY += 5
+                    doc.text(discTitle, mx, posY);
+                    posY += my + 5;
+                    if (posY > pageHeight - 20) {
+                        doc.addPage();
+                    }
+                    doc.setFontSize(12); // Set a normal font size
+                    doc.setFont("helvetica", "normal"); // Set font style to bold
+                    for (disc of discussion) {
+                        if(posY > pageHeight - 20){
+                            doc.addPage();
+                            posY = 20;
+                        }
+                        doc.text(`- ${disc}`, mx, posY);
+                        posY = posY + my;
+                        counter++;
+                    }
+                }
                 
+                // Action
+                if(actionItems.length !== 0){
+                    const actionTitle = "Action Taken";
+                    doc.setFontSize(16); // Set a normal font size
+                    doc.setTextColor(0, 0, 0); // Set color back to black
+                    doc.setFont("helvetica", "bold"); // Set font style to bold
+                    counter = 1;
+                    posY += 5
+                    doc.text(actionTitle, mx, posY);
+                    posY += my + 5;
+                    if (posY > pageHeight - 20) {
+                        doc.addPage();
+                    }
+                    doc.setFontSize(12); // Set a normal font size
+                    doc.setFont("helvetica", "normal"); // Set font style to bold
+                    const header = ["Sl.", "Task", "Owner", "Deadline"];
+                    let actionTaken = [];
+                    for (actionItem of actionItems) {
+                        actionTaken.push([counter, actionItem.task, actionItem.owner, actionItem.deadline]);
+                        counter++
+                    }
+                    doc.autoTable({
+                        head: [header], // Table headers
+                        body: actionTaken,     // Table body data
+                        startY: posY,          // Y position to start the table (optional)
+                        theme: 'grid',       // 'striped', 'grid', or 'plain'
+                        styles: {
+                            font: 'helvetica',
+                            fontSize: 10
+                        }
+                    });
+                    posY = doc.lastAutoTable.finalY + my;
+                }
+
+                // Next Meeting
+                if(nextMeetingDate && nextMeetingTime){
+                    doc.setFontSize(16); // Set a normal font size
+                    doc.setTextColor(0, 0, 0); // Set color back to black
+                    doc.setFont("helvetica", "bold"); // Set font style to bold
+                    counter = 1;
+                    posY += 5
+                    doc.text("Next Meeting: ", mx, posY);
+                    doc.setFontSize(12); // Set a normal font size
+                    doc.setTextColor(0, 0, 0); // Set color back to black
+                    doc.setFont("helvetica", "normal"); // Set font style to bold
+                    const printMeeting = `Date: ${nextMeetingDate}, Time: ${nextMeetingTime}, Location: ${nextMeetingLocation}`;
+                    posY += my+5;
+                    doc.text(printMeeting, mx, posY);
+                }
+
+                doc.addPage();
+
+                // Attendence Details Page
+                posY = 20;
+                doc.setFontSize(16); // Set a normal font size
+                doc.setTextColor(0, 0, 0); // Set color back to black
+                doc.setFont("helvetica", "bold"); // Set font style to bold
+                doc.text("Attendence Sheet", pageWidth / 2, posY, { align: 'center' });
+                posY += my;
+                doc.line(lineX, posY, pageWidth - 10, posY);
+                posY = posY + my + 5;
+                counter = 1;
+                doc.setFontSize(12); // Set a normal font size
+                doc.setTextColor(0, 0, 0); // Set color back to black
+                doc.setFont("helvetica", "normal"); // Set font style to bold
+                for(person of attendees){
+                    if(posY > pageHeight - 20){
+                        doc.addPage();
+                        posY = 20;
+                    }
+                    doc.text(`${counter}. ${person}`, mx, posY);
+                    posY += my;
+                    counter++;
+                }
+
+
                 // Save file
                 doc.save('mom.pdf');
             });
